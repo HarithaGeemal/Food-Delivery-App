@@ -1,7 +1,6 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "baseUrl": ".",
