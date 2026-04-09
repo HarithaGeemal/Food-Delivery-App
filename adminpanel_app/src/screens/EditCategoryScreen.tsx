@@ -3,38 +3,45 @@ import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import { createCategory } from '../api/apiClient';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { updateCategory } from '../api/apiClient';
 import * as ImagePicker from 'expo-image-picker';
 
 interface CategoryFormData {
   name: string;
 }
 
-const AddCategoryScreen = () => {
+type EditCategoryRouteProp = RouteProp<{ EditCategory: { category: any } }, 'EditCategory'>;
+
+const EditCategoryScreen = () => {
   const navigation = useNavigation();
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const route = useRoute<EditCategoryRouteProp>();
+  const { category } = route.params;
+
+  const [imageUri, setImageUri] = useState<string | null>(category.imageUrl || null);
+  // Track if a generic new image was picked, so we send it to backend only if changed
+  const [isNewImage, setIsNewImage] = useState(false);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<CategoryFormData>({
-    defaultValues: { name: '' },
+    defaultValues: { name: category.name },
   });
 
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (data: CategoryFormData) =>
-      createCategory({ name: data.name, imageUri: imageUri ?? undefined }),
+      updateCategory(category.id, { name: data.name, imageUri: isNewImage && imageUri ? imageUri : undefined }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['categories'] });
       navigation.goBack();
     },
     onError: (error: any) => {
-      console.error('Error creating category:', error);
-      Alert.alert('Error', 'Failed to create category. Please try again.');
+      console.error('Error updating category:', error);
+      Alert.alert('Error', 'Failed to update category. Please try again.');
     },
   });
 
@@ -55,6 +62,7 @@ const AddCategoryScreen = () => {
 
     if (!result.canceled && result.assets.length > 0) {
       setImageUri(result.assets[0].uri);
+      setIsNewImage(true);
     }
   };
 
@@ -64,8 +72,8 @@ const AddCategoryScreen = () => {
 
   return (
     <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16 }}>
-      <Text className="text-lg font-bold text-gray-900 mb-1">Add New Category</Text>
-      <Text className="text-sm text-gray-500 mb-6">Give it a short, clear name and an image</Text>
+      <Text className="text-lg font-bold text-gray-900 mb-1">Edit Category</Text>
+      <Text className="text-sm text-gray-500 mb-6">Update the category details</Text>
 
       {/* Image Picker */}
       <Text className="text-sm font-medium text-gray-700 mb-2">Category Image</Text>
@@ -120,14 +128,14 @@ const AddCategoryScreen = () => {
       >
         <Ionicons name="save" size={18} color="#fff" />
         <Text className="text-white font-semibold ml-2 text-base">
-          {mutation.isPending ? 'Uploading & Saving...' : 'Create Category'}
+          {mutation.isPending ? 'Updating...' : 'Update Category'}
         </Text>
       </Pressable>
     </ScrollView>
   );
 };
 
-export default AddCategoryScreen;
+export default EditCategoryScreen;
 
 const styles = StyleSheet.create({
   imagePicker: {
@@ -159,4 +167,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-

@@ -3,6 +3,7 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import AddCategoryScreen from '../screens/AddCategoryScreen';
+import EditCategoryScreen from '../screens/EditCategoryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ const CategoriesStack = () => {
     >
         <Stack.Screen name="Categories" component={CategoriesScreen} options={{title:"Categories"}}/>
         <Stack.Screen name="AddCategory" component={AddCategoryScreen} options={{title:"Add Category"}}/>
+        <Stack.Screen name="EditCategory" component={EditCategoryScreen} options={{title:"Edit Category"}}/>
     </Stack.Navigator>
   )
 }
