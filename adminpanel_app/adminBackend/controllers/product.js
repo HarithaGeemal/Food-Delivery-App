@@ -1,4 +1,6 @@
 import { PrismaClient } from '../generated/prisma/index.js';
+import logger from '../utils/logger.js';
+import { uploadBuffer } from '../utils/cloudinary.js';
 
 const prisma = new PrismaClient({
     log: ['error']
@@ -9,7 +11,7 @@ async function getProducts(req, res) {
         const { categoryId, page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const where = categoryId ? { categoryId: parseInt(categoryId) } : {};
+        const where = categoryId ? { categoryId: categoryId } : {};
         const products = await prisma.product.findMany({
             where,
             skip: parseInt(skip),
@@ -27,7 +29,7 @@ async function getProduct(req, res) {
     try {
         const { id } = req.params;
         const product = await prisma.product.findUnique({
-            where: { id: parseInt(id) },
+            where: { id },
         });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
@@ -41,9 +43,21 @@ async function getProduct(req, res) {
 
 async function createProduct(req, res) {
     try {
-        const { name, description, price, imageUrl, categoryId } = req.body;
+        const { name, description, price, categoryId } = req.body;
+        
+        let imageUrl = '';
+        if (req.file) {
+            imageUrl = await uploadBuffer(req.file.buffer, 'food_delivery/products');
+        }
+
         const product = await prisma.product.create({
-            data: { name, description, price: parseFloat(price) || 0, imageUrl, category: { connect: { id: parseInt(categoryId) } } },
+            data: { 
+                name, 
+                description, 
+                price: parseFloat(price) || 0, 
+                imageUrl, 
+                category: { connect: { id: categoryId } } 
+            },
         });
         res.status(201).json(product);
     } catch (error) {
@@ -55,10 +69,19 @@ async function createProduct(req, res) {
 async function updateProduct(req, res) {
     try {
         const { id } = req.params;
-        const { name, description, price, imageUrl, categoryId } = req.body;
+        const { name, description, price, categoryId } = req.body;
+        
+        let updateData = { name, description, price: parseFloat(price) };
+        if (categoryId) {
+            updateData.category = { connect: { id: categoryId } };
+        }
+        if (req.file) {
+            updateData.imageUrl = await uploadBuffer(req.file.buffer, 'food_delivery/products');
+        }
+
         const product = await prisma.product.update({
-            where: { id: parseInt(id) },
-            data: { name, description, price: parseFloat(price), imageUrl, category: { connect: { id: parseInt(categoryId) } } },
+            where: { id },
+            data: updateData,
         });
         res.json(product);
     } catch (error) {
@@ -71,7 +94,7 @@ async function deleteProduct(req, res) {
     try {
         const { id } = req.params;
         await prisma.product.delete({
-            where: { id: parseInt(id) },
+            where: { id },
         });
         res.status(204).send();
     } catch (error) {

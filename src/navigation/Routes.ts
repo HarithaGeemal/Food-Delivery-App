@@ -47,7 +47,7 @@ export type MainStackParamList = {
     [MainRoutes.ProductDetails]: { productId: string };
     [MainRoutes.Checkout]: undefined;
     [MainRoutes.Profile]: undefined;
-    [MainRoutes.Category]: undefined;
+    [MainRoutes.Category]: { categoryName?: string };
     [MainRoutes.AddAddress]: undefined;
     [MainRoutes.EditAddress]: {addressId : string};
 }

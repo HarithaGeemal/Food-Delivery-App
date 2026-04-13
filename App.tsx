@@ -6,26 +6,45 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
-import { setIsNavigationReady,navigationRef } from 'navigation/Navigation';
+import { setIsNavigationReady, navigationRef } from 'navigation/Navigation';
 import RootNavigator from 'navigation/navigators/RootNavigator';
-import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { verifyInstallation } from 'nativewind';
-import "./global.css";
+import './global.css';
 
 verifyInstallation();
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function AppContent() {
   const isDarkMode = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
 
   return (
-    <NavigationContainer ref={navigationRef} onReady={setIsNavigationReady}>
-      <RootNavigator/>
-    </NavigationContainer>
+    <QueryClientProvider client={queryClient}>
+      <NavigationContainer ref={navigationRef} onReady={setIsNavigationReady}>
+        <RootNavigator />
+      </NavigationContainer>
+    </QueryClientProvider>
   );
 }
 
@@ -33,10 +52,12 @@ function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <AppContent />
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -55,8 +76,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
     marginTop: 10,
-  }
+  },
 });
-
 
 export default App;

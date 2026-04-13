@@ -4,49 +4,53 @@ import { useForm, Controller } from 'react-hook-form';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { updateCategory } from '../api/apiClient';
+import { createProduct } from '../api/apiClient';
 import * as ImagePicker from 'expo-image-picker';
 
-interface CategoryFormData {
+interface ProductFormData {
   name: string;
+  description: string;
+  price: string;
 }
 
-type EditCategoryRouteProp = RouteProp<{ EditCategory: { category: any } }, 'EditCategory'>;
-
-const EditCategoryScreen = () => {
+const AddProductScreen = () => {
   const navigation = useNavigation();
-  const route = useRoute<EditCategoryRouteProp>();
-  const { category } = route.params;
+  const route = useRoute<RouteProp<any, any>>();
+  const { categoryId, categoryName } = (route?.params as any) ?? { categoryId: '' };
 
-  const [imageUri, setImageUri] = useState<string | null>(category.imageUrl || null);
-  // Track if a generic new image was picked, so we send it to backend only if changed
-  const [isNewImage, setIsNewImage] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<CategoryFormData>({
-    defaultValues: { name: category.name },
+  } = useForm<ProductFormData>({
+    defaultValues: { name: '', description: '', price: '' },
   });
 
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (data: CategoryFormData) =>
-      updateCategory(category.id, { name: data.name, imageUri: isNewImage && imageUri ? imageUri : undefined }),
+    mutationFn: (data: ProductFormData) =>
+      createProduct({ 
+          name: data.name, 
+          description: data.description,
+          price: data.price,
+          categoryId,
+          imageUri: imageUri ?? undefined 
+      }),
     onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['products', categoryId] });
       await queryClient.invalidateQueries({ queryKey: ['categories'] });
       navigation.goBack();
     },
     onError: (error: any) => {
-      console.error('Error updating category:', error);
-      Alert.alert('Error', 'Failed to update category. Please try again.');
+      console.error('Error creating product:', error);
+      Alert.alert('Error', 'Failed to create product. Please try again.');
     },
   });
 
   const pickImage = async () => {
-    // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission required', 'Please allow access to your photo library to upload an image.');
@@ -62,21 +66,20 @@ const EditCategoryScreen = () => {
 
     if (!result.canceled && result.assets.length > 0) {
       setImageUri(result.assets[0].uri);
-      setIsNewImage(true);
     }
   };
 
-  const onSubmit = (data: CategoryFormData) => {
+  const onSubmit = (data: ProductFormData) => {
     mutation.mutate(data);
   };
 
   return (
     <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16 }}>
-      <Text className="text-lg font-bold text-gray-900 mb-1">Edit Category</Text>
-      <Text className="text-sm text-gray-500 mb-6">Update the category details</Text>
+      <Text className="text-lg font-bold text-gray-900 mb-1">Add New Product</Text>
+      <Text className="text-sm text-gray-500 mb-6">Attach it directly to {categoryName}</Text>
 
       {/* Image Picker */}
-      <Text className="text-sm font-medium text-gray-700 mb-2">Category Image</Text>
+      <Text className="text-sm font-medium text-gray-700 mb-2">Product Image</Text>
       <TouchableOpacity
         onPress={pickImage}
         activeOpacity={0.8}
@@ -98,18 +101,18 @@ const EditCategoryScreen = () => {
         )}
       </TouchableOpacity>
 
-      {/* Category Name */}
-      <Text className="text-sm font-medium text-gray-700 mb-2 mt-5">Category Name</Text>
+      {/* Title */}
+      <Text className="text-sm font-medium text-gray-700 mb-2 mt-5">Product Name</Text>
       <Controller
         control={control}
         name="name"
         rules={{
-          required: 'Category name is required',
+          required: 'Product name is required',
           minLength: { value: 3, message: 'Must be at least 3 characters' },
         }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            placeholder="E.g. Beverages"
+            placeholder="E.g. Spicy Chicken Burger"
             value={value}
             onChangeText={onChange}
             className="bg-white p-3 rounded-lg border border-gray-200"
@@ -120,6 +123,50 @@ const EditCategoryScreen = () => {
         <Text className="text-red-500 mt-1 text-sm">{errors.name.message}</Text>
       )}
 
+      {/* Price */}
+      <Text className="text-sm font-medium text-gray-700 mb-2 mt-5">Price ($)</Text>
+      <Controller
+        control={control}
+        name="price"
+        rules={{
+          required: 'Price is required',
+          pattern: {
+            value: /^\d+(\.\d{1,2})?$/,
+            message: 'Must be a valid positive number format e.g. 10.99'
+          }
+        }}
+        render={({ field: { onChange, value } }) => (
+          <TextInput
+            placeholder="E.g. 12.99"
+            value={value}
+            keyboardType="decimal-pad"
+            onChangeText={onChange}
+            className="bg-white p-3 rounded-lg border border-gray-200"
+          />
+        )}
+      />
+      {errors.price && (
+        <Text className="text-red-500 mt-1 text-sm">{errors.price.message}</Text>
+      )}
+
+      {/* Description */}
+      <Text className="text-sm font-medium text-gray-700 mb-2 mt-5">Description (Optional)</Text>
+      <Controller
+        control={control}
+        name="description"
+        render={({ field: { onChange, value } }) => (
+          <TextInput
+            placeholder="Add a detailed description..."
+            value={value}
+            onChangeText={onChange}
+            multiline
+            numberOfLines={4}
+            className="bg-white p-3 rounded-lg border border-gray-200 h-28"
+            style={{ textAlignVertical: 'top' }}
+          />
+        )}
+      />
+
       {/* Submit */}
       <Pressable
         className="flex-row items-center justify-center bg-blue-600 px-4 py-3 rounded-xl mt-8"
@@ -128,14 +175,14 @@ const EditCategoryScreen = () => {
       >
         <Ionicons name="save" size={18} color="#fff" />
         <Text className="text-white font-semibold ml-2 text-base">
-          {mutation.isPending ? 'Updating...' : 'Update Category'}
+          {mutation.isPending ? 'Uploading & Saving...' : 'Create Product'}
         </Text>
       </Pressable>
     </ScrollView>
   );
 };
 
-export default EditCategoryScreen;
+export default AddProductScreen;
 
 const styles = StyleSheet.create({
   imagePicker: {

@@ -4,7 +4,7 @@ import React from 'react'
 const StoreScreen = () => {
   return (
     <View>
-      <Text>StoreScreen</Text>
+      <Text>Fuck</Text>
     </View>
   )
 }

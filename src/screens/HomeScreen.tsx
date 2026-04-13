@@ -1,41 +1,49 @@
-import { View, Text, StyleSheet, StatusBar, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, ScrollView, Image, FlatList, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import BannerCarousel from 'components/BannerCarousel';
+import { useQuery } from '@tanstack/react-query';
+import { Category, fetchCategories, Product, fetchProducts } from '../api/apiClient';
+import CategoryCard from 'components/CategoryCard';
+import { MainRoutes, MainStackParamList } from 'navigation/Routes';
 
+
+function CategorySkeletonRow() {
+  const placeholders = Array.from({ length: 8 }, (_, i) => i.toString());
+
+  return (
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className='pb-1 mt-2'>
+        {placeholders?.map((k: any) => (
+          <View key={k} className="items-center mr-4 w-20">
+            <View className='h-16 w-16 rounded-full bg-zinc-200 animate-pulse' />
+            <View className='h-3 w-14 rounded bg-zinc-200 animate-pulse mt-2' />
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 const HomeScreen = () => {
   const [query, setQuery] = useState('');
-  const products = [
-    {
-      id: '1',
-      name: 'Cow Milk Packet',
-      price: 70,
-      imageUrl:
-        'https://cdn.zeptonow.com/production/tr:w-403,ar-1000-1000,pr-true,f-auto,q-80/cms/product_variant/a05ee90f-d81b-43a5-8f40-8c16a981730e.jpeg',
-    },
-    {
-      id: '2',
-      name: 'Buffalo Milk',
-      price: 80,
-      imageUrl:
-        'https://www.bbassets.com/media/uploads/p/l/40149834_1-nandini-shubham-milk.jpg',
-    },
-    {
-      id: '3',
-      name: 'Ghee (500g)',
-      price: 500,
-      imageUrl: 'https://via.placeholder.com/300x200?text=Ghee',
-    },
-    {
-      id: '4',
-      name: 'Paneer Block',
-      price: 200,
-      imageUrl: 'https://via.placeholder.com/300x200?text=Paneer',
-    },
-  ];
 
+  const { data: productsData, isLoading: isProductsLoading } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
+
+  const products = productsData ?? [];
+
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  })
+
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   return (
     <SafeAreaView
       edges={['top']}
@@ -60,6 +68,26 @@ const HomeScreen = () => {
           </View>
 
           {/* Catogarise */}
+          <View className="mt-3 px-4">
+            <Text className='text-xl font-bold'>New Kitchen Essentials</Text>
+
+
+            {isCategoriesLoading ? (
+              <CategorySkeletonRow />
+
+            ) : (
+              <FlatList
+                data={categories ?? []}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="mt-2"
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => <CategoryCard name={item?.name} image={item?.imageUrl}
+                  onPress={() => navigation.navigate(MainRoutes.Category, {categoryName : item?.name})} />}
+              />
+            )}
+
+          </View>
 
           {/* <View>
 
@@ -82,19 +110,39 @@ const HomeScreen = () => {
             </View>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="px-4" className="mt-2">
-            {products.map((product) => (
-              <View key={product.id} className="w-32 mr-4 mb-4">
-                <View className='h-32 bg-gray-100 rounded-xl p-2'>
-                    <Image source={{ uri: product.imageUrl }} className="w-full h-full rounded-lg" resizeMode='contain' />
+          {isProductsLoading ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="px-4" className="mt-2 text-left pb-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <View key={i} className="mr-3 mb-4 w-[140px]">
+                  <View className='h-[100px] w-full bg-zinc-200 rounded-xl animate-pulse' />
+                  <View className="mt-2">
+                    <View className="h-3 w-28 bg-zinc-200 rounded animate-pulse" />
+                    <View className="h-3 w-12 bg-zinc-200 rounded animate-pulse mt-1.5" />
+                  </View>
                 </View>
-                <View className="mt-2 text-left">
-                  <Text className="font-semibold text-[13px]" numberOfLines={1}>{product.name}</Text>
-                  <Text className="font-bold text-green-700 mt-1">₹{product.price}</Text>
+              ))}
+            </ScrollView>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="px-4" className="mt-2 text-left pb-4">
+              {products.map((product) => (
+                <View key={product.id} className="mr-3 mb-4 w-[140px]">
+                  <View className='h-[100px] w-full rounded-xl bg-gray-50 border border-gray-100 overflow-hidden items-center justify-center shadow-sm'>
+                    {product.imageUrl ? (
+                      <Image source={{ uri: product.imageUrl }} className="w-full h-full" resizeMode='cover' />
+                    ) : (
+                      <View className="w-full h-full bg-gray-100 items-center justify-center">
+                        <Text className="text-gray-400 font-bold tracking-widest">{product.name?.substring(0, 2)?.toUpperCase()}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View className="mt-2">
+                    <Text className="font-semibold text-[12px] text-gray-800" numberOfLines={1}>{product.name}</Text>
+                    <Text className="font-bold text-gray-800 mt-0.5">${product.price}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </ScrollView>
+              ))}
+            </ScrollView>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
