@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.1.4:5000/api/v1';
+const API_BASE_URL = 'http://10.0.2.2:5000/api/v1';
 
 export interface Category {
     id: string;
@@ -37,12 +37,31 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error: any) => {
-        console.error('API Response Error:', error);
+        // Do not throw a red-screen LogBox for 401/404 auth checks
+        if (error.response && [401, 404].includes(error.response.status)) {
+            console.warn(`API auth check failed: ${error.response.status}`);
+        } else {
+            console.error('API Response Error:', error.message);
+        }
         return Promise.reject(error);
     }
 );
 
 let authInterceptorId: number | null = null;
+
+export const setAuthToken = (token: string | null) => {
+    if (authInterceptorId !== null) {
+        api.interceptors.request.eject(authInterceptorId);
+    }
+    if (token) {
+        authInterceptorId = api.interceptors.request.use((config) => {
+            config.headers.Authorization = `Bearer ${token}`;
+            return config;
+        });
+    } else {
+        authInterceptorId = null;
+    }
+}
 
 export const fetchCategories = async () => (await api.get('/categories')).data as Category[];
 export const fetchCategory = async (id: string) => (await api.get(`/categories/${id}`)).data as Category;
@@ -51,3 +70,28 @@ export const fetchCategory = async (id: string) => (await api.get(`/categories/$
 export const fetchProducts = async () => (await api.get('/products')).data as Product[];
 export const fetchProductsByCategory = async (categoryId: string) => (await api.get(`/categories/${categoryId}/products`)).data as Product[];
 export const fetchProductById = async (id: string) => (await api.get(`/products/${id}`)).data as Product;
+
+// addresses
+export interface Address {
+    id: string;
+    userId: string;
+    type: string;
+    name: string;
+    mobile: string;
+    address: string;
+    city: string;
+    province: string;
+    zipCode: string;
+}
+
+export const signUp = async (data: { email: string, password: string, phone: string, confirmPassword: string }) => {
+    const { confirmPassword, ...rest } = data;
+    return (await api.post('/auth/sign-up', { ...rest, password_confirm: confirmPassword })).data;
+};
+export const login = async (data: { email: string, password: string }) => (await api.post('/auth/login', data)).data;
+export const fetchMe = async () => (await api.get('/auth/me')).data;
+
+export const fetchAddresses = async () => (await api.get('/addresses')).data as Address[];
+export const createAddress = async (data: Omit<Address, 'id' | 'userId'>) => (await api.post('/addresses', data)).data as Address;
+export const updateAddress = async (params: { id: string, data: Partial<Address> }) => (await api.put(`/addresses/${params.id}`, params.data)).data as Address;
+export const deleteAddress = async (id: string) => (await api.delete(`/addresses/${id}`)).data;

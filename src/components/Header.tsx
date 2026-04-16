@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from 'navigation/Routes';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { Alert } from 'react-native';
+import { useAuthStore } from '../store/useAuthStore';
 
 import { cssInterop } from 'nativewind';
 
@@ -11,6 +13,18 @@ const MyText = cssInterop(Text, { className: 'style' });
 
 const Header = () => {
   const nav = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", onPress: () => logout(), style: "destructive" }
+      ]
+    );
+  };
 
   return (
     <View className="px-4 pb-4 rounded-b-2xl">
@@ -39,7 +53,7 @@ const Header = () => {
           <Pressable>
             <Ionicons name='heart-outline' size={22} color="#fff" />
           </Pressable>
-          <Pressable>
+          <Pressable onPress={handleLogout}>
             <Ionicons name='person-outline' size={22} color="#fff" />
           </Pressable>
         </View>

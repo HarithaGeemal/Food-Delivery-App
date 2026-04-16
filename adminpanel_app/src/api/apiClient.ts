@@ -122,4 +122,4 @@ export const updateProduct = async (id: string, data: { name: string, descriptio
     return response.data;
 };
 
-export const deleteProduct = async (id: string) => (await api.delete(`/products/${id}`)).data;
+export const deleteProduct = async (id: string) => (await api.delete(`/products/${id}`)).data;

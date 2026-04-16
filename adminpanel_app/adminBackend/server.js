@@ -1,21 +1,26 @@
+// dotenv MUST be the very first import in ES modules —
+// static imports are hoisted before module body code, so
+// dotenv.config() calls mid-file are too late for other imports.
+import 'dotenv/config';
+
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import rateLimit from 'express-rate-limit';
-import crypto from 'crypto';
 import logger from './utils/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
-
-// Load env vars FIRST before anything else uses process.env
-dotenv.config();
-
-// Routes
+import authRoutes from './routes/authRoutes.js';
 import categoriesRoutes from './routes/categoriesRoutes.js';
 import productsRoutes from './routes/productRoutes.js';
-// import ordersRoutes from './routes/ordersRoutes.js';
-// import usersRoutes from './routes/usersRoutes.js';
+
+// Guard: catch missing critical env vars at startup
+const REQUIRED_ENV = ['JWT_SECRET', 'DATABASE_URL'];
+const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+    console.error(`[STARTUP ERROR] Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,20 +29,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(helmet());
 app.use(rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: 'Too many requests from this IP, please try again after 15 minutes'
 }));
-
-// Body parsers — do NOT use bodyParser.raw here, it overwrites the parsed JSON body
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes (must be registered BEFORE the error handler)
+// Routes
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoriesRoutes);
 app.use('/api/v1/products', productsRoutes);
-// app.use('/api/v1/orders', ordersRoutes);
-// app.use('/api/v1/users', usersRoutes);
+
+
 
 // Error handler MUST come AFTER routes
 app.use(errorHandler);
