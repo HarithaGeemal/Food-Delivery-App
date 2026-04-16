@@ -19,12 +19,17 @@ type CartState = {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   clearCart: () => void;
+  selectedAddressId: string | null;
+  setSelectedAddressId: (id: string | null) => void;
 };
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      selectedAddressId: null,
+
+      setSelectedAddressId: (id) => set({ selectedAddressId: id }),
 
       addItem: (product) => {
         set((state) => {

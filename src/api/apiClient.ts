@@ -82,6 +82,7 @@ export interface Address {
     city: string;
     province: string;
     zipCode: string;
+    isDefault?: boolean;
 }
 
 export const signUp = async (data: { email: string, password: string, phone: string, confirmPassword: string }) => {

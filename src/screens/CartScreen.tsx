@@ -11,6 +11,8 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAddresses } from '../api/apiClient';
 import { useCartStore, CartItem } from '../store/useCartStore';
 
 const CartScreen = () => {
@@ -25,6 +27,9 @@ const CartScreen = () => {
   const deliveryFee = totalPrice > 30 ? 0 : 3.99;
   const taxes = parseFloat((totalPrice * 0.05).toFixed(2));
   const grandTotal = parseFloat((totalPrice + deliveryFee + taxes).toFixed(2));
+
+  const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: fetchAddresses });
+  const defaultAddress = addresses?.find(a => a.isDefault) || addresses?.[0];
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <View className="flex-row items-center bg-white rounded-2xl p-3 mb-3 shadow-sm">
@@ -155,10 +160,13 @@ const CartScreen = () => {
               <Ionicons name="location-outline" size={20} color="#3b82f6" />
             </View>
             <View className="ml-3 flex-1">
-              <Text className="text-[14px] font-bold text-gray-900">Deliver to</Text>
-              <Text className="text-[12px] text-gray-500" numberOfLines={1}>Add delivery address</Text>
+              <Text className="text-[14px] font-bold text-gray-900">
+                 Deliver to {defaultAddress?.type ? `(${defaultAddress.type})` : ''}
+              </Text>
+              <Text className="text-[12px] text-gray-500" numberOfLines={1}>
+                {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : 'No address saved.'}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
           </View>
         </View>
 

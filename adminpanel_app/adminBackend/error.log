@@ -18,3 +18,5 @@
 {"level":"error","message":"Error signing up: secretOrPrivateKey must have a value","stack":"Error: secretOrPrivateKey must have a value\n    at module.exports [as sign] (C:\\Users\\User\\Desktop\\food_dilivery_app\\food_delivery_app\\adminpanel_app\\adminBackend\\node_modules\\jsonwebtoken\\sign.js:111:20)\n    at signUp (file:///C:/Users/User/Desktop/food_dilivery_app/food_delivery_app/adminpanel_app/adminBackend/controllers/auth.js:32:33)","timestamp":"2026-04-15T15:24:34.659Z"}
 {"level":"error","message":"POST /api/v1/auth/sign-up - secretOrPrivateKey must have a value","timestamp":"2026-04-15T15:24:34.661Z"}
 {"level":"error","message":"Token verification failed:","timestamp":"2026-04-15T17:07:19.118Z"}
+{"level":"error","message":"Token verification failed:","timestamp":"2026-04-16T05:16:23.683Z"}
+{"level":"error","message":"Token verification failed:","timestamp":"2026-04-16T05:42:04.168Z"}

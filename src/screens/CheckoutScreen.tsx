@@ -11,6 +11,8 @@ import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAddresses } from '../api/apiClient';
 import { useCartStore } from '../store/useCartStore';
 
 const CheckoutScreen = () => {
@@ -18,6 +20,20 @@ const CheckoutScreen = () => {
   const items = useCartStore((s) => s.items);
   const totalItems = useCartStore((s) => s.getTotalItems());
   const totalPrice = useCartStore((s) => s.getTotalPrice());
+  const selectedAddressId = useCartStore((s) => s.selectedAddressId);
+  const setSelectedAddressId = useCartStore((s) => s.setSelectedAddressId);
+
+  const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: fetchAddresses });
+
+  const displayAddress = addresses?.find(a => a.id === selectedAddressId)
+    || addresses?.find(a => a.isDefault)
+    || addresses?.[0];
+
+  React.useEffect(() => {
+    if (displayAddress && selectedAddressId !== displayAddress.id) {
+      setSelectedAddressId(displayAddress.id);
+    }
+  }, [displayAddress, selectedAddressId, setSelectedAddressId]);
 
   const deliveryFee = totalPrice > 30 ? 0 : 3.99;
   const taxes = parseFloat((totalPrice * 0.05).toFixed(2));
@@ -45,29 +61,38 @@ const CheckoutScreen = () => {
         <Text className="text-[15px] font-bold text-gray-800 mb-2">Deliver To</Text>
         <View className="bg-white rounded-2xl p-4 shadow-sm mb-4 border border-gray-100">
           <View className="flex-row justify-between mb-2">
-            <View className="flex-row">
+            <View className="flex-row flex-1 mr-4">
               <View className="w-10 h-10 rounded-xl bg-green-50 items-center justify-center mr-3 mt-1">
-                <Ionicons name="home-outline" size={20} color="#16a34a" />
+                <Ionicons name="location-outline" size={20} color="#16a34a" />
               </View>
-              <View>
-                <Text className="text-[15px] font-bold text-gray-900">Home</Text>
-                <Text className="text-[14px] font-semibold text-gray-800 mt-0.5">Sujan</Text>
-                <Text className="text-[13px] text-gray-500 mt-1 leading-5">
-                  54{'\n'}ban, Dasarahalli, Bangalore{'\n'}Bengaluru - 560024
-                </Text>
+              <View className="flex-1">
+                <Text className="text-[15px] font-bold text-gray-900">{displayAddress ? (displayAddress.type || 'Home') : 'No Address'}</Text>
+                {displayAddress ? (
+                  <>
+                    <Text className="text-[14px] font-semibold text-gray-800 mt-0.5">{displayAddress.name}</Text>
+                    <Text className="text-[13px] text-gray-500 mt-1 leading-5">
+                      {displayAddress.address}{'\n'}{displayAddress.city} - {displayAddress.zipCode}
+                    </Text>
+                    <Text className="text-[13px] text-gray-500 font-medium mt-1">Mobile: {displayAddress.mobile}</Text>
+                  </>
+                ) : (
+                  <Text className="text-[13px] text-gray-500 mt-1">Please select an address for delivery</Text>
+                )}
               </View>
             </View>
-            <Pressable>
-              <Text className="text-purple-600 font-semibold text-[14px]">Change</Text>
+            <Pressable onPress={() => navigation.navigate('AddressListScreen' as any)}>
+              <Text className="text-purple-600 font-semibold text-[14px]">{displayAddress ? 'Change' : 'Add'}</Text>
             </Pressable>
           </View>
 
-          <View className="flex-row items-center ml-[52px] mt-2">
-            <Ionicons name="star" size={14} color="#f59e0b" />
-            <Text className="text-[12px] text-gray-600 font-medium ml-1">
-              Preferred delivery address
-            </Text>
-          </View>
+          {displayAddress?.isDefault && (
+            <View className="flex-row items-center ml-[52px] mt-2">
+              <Ionicons name="star" size={14} color="#f59e0b" />
+              <Text className="text-[12px] text-gray-600 font-medium ml-1">
+                Preferred delivery address
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Delivery slot */}
@@ -83,8 +108,8 @@ const CheckoutScreen = () => {
                 key={slot}
                 onPress={() => setDeliverySlot(slot)}
                 className={`py-2 px-3 rounded-lg border ${deliverySlot === slot
-                    ? 'border-green-600 bg-green-600'
-                    : 'border-gray-200 bg-white'
+                  ? 'border-green-600 bg-green-600'
+                  : 'border-gray-200 bg-white'
                   }`}
               >
                 <Text
@@ -124,8 +149,8 @@ const CheckoutScreen = () => {
             >
               <View
                 className={`w-5 h-5 rounded-full border-[1.5px] items-center justify-center mr-3 flex-shrink-0 ${paymentMethod === method.id
-                    ? 'border-green-600'
-                    : 'border-gray-300'
+                  ? 'border-green-600'
+                  : 'border-gray-300'
                   }`}
               >
                 {paymentMethod === method.id && (

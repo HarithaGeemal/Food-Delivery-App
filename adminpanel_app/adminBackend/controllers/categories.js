@@ -1,22 +1,25 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import Category from '../models/Category.js';
+import Product from '../models/Product.js';
 import logger from '../utils/logger.js';
 import { uploadBuffer } from '../utils/cloudinary.js';
-
-const prisma = new PrismaClient({
-    log: ['error']
-});
 async function getCategories(req, res) {
     try {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const categories = await prisma.category.findMany({
-            include: { products: true },
-            skip: parseInt(skip),
-            take: parseInt(limit),
-            orderBy: { createdAt: 'desc' },
-        });
-        res.json(categories);
+        const categories = await Category.find()
+            .sort({ createdAt: -1 })
+            .skip(parseInt(skip))
+            .limit(parseInt(limit));
+            
+        // Emulate Prisma's `include: { products: true }`
+        const categoriesWithProducts = await Promise.all(
+            categories.map(async (cat) => {
+                const products = await Product.find({ categoryId: cat._id });
+                return { ...cat.toJSON(), products };
+            })
+        );
+        res.json(categoriesWithProducts);
     } catch (error) {
         logger.error('Error fetching categories:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -29,12 +32,10 @@ async function getProductsByCategory(req, res) {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const products = await prisma.product.findMany({
-            where: { categoryId: id },
-            skip: parseInt(skip),
-            take: parseInt(limit),
-            orderBy: { createdAt: 'desc' },
-        });
+        const products = await Product.find({ categoryId: id })
+            .sort({ createdAt: -1 })
+            .skip(parseInt(skip))
+            .limit(parseInt(limit));
         res.status(201).json(products);
     } catch (error) {
         logger.error('Error fetching products by category:', error);
@@ -59,9 +60,7 @@ async function createCategory(req, res) {
             logger.info(`Image uploaded: ${imageUrl}`);
         }
 
-        const category = await prisma.category.create({
-            data: { name, imageUrl },
-        });
+        const category = await Category.create({ name, imageUrl });
 
         logger.info(`Category created successfully: id=${category.id}, name="${category.name}"`);
         res.status(201).json(category);
@@ -83,10 +82,7 @@ async function updateCategory(req, res) {
             updateData.imageUrl = imageUrl;
         }
 
-        const category = await prisma.category.update({
-            where: { id },
-            data: updateData,
-        });
+        const category = await Category.findByIdAndUpdate(id, updateData, { new: true });
         res.json(category);
     } catch (error) {
         logger.error('Error updating category:', error);
@@ -97,8 +93,8 @@ async function updateCategory(req, res) {
 async function deleteCategory(req, res) {
     try {
         const { id } = req.params;
-        await prisma.product.deleteMany({ where: { categoryId: id } });
-        await prisma.category.delete({ where: { id } });
+        await Product.deleteMany({ categoryId: id });
+        await Category.findByIdAndDelete(id);
         res.json({ message: 'Category deleted successfully' });
     } catch (error) {
         logger.error('Error deleting category:', error);

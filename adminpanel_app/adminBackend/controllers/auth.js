@@ -1,10 +1,8 @@
 
-import { PrismaClient } from "../generated/prisma/index.js";
+import User from "../models/User.js";
 import logger from "../utils/logger.js";
 import { sendEmailWithRetry } from "../utils/emailQueue.js";
 
-
-const prisma = new PrismaClient();
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 async function signUp(req, res) {
@@ -14,19 +12,17 @@ async function signUp(req, res) {
             return res.status(400).json({ error: 'Passwords do not match' });
         }
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             return res.status(400).json({ error: 'Email already in use' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await prisma.user.create({
-            data: {
-                email,
-                phone,
-                password: hashedPassword
-            }
+        const user = await User.create({
+            email,
+            phone,
+            password: hashedPassword
         });
 
         const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
@@ -75,7 +71,7 @@ async function signUp(req, res) {
 async function login(req, res) {
     try {
         const { email, password } = req.body;
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await User.findOne({ email });
         if (!user || !user.password) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
@@ -94,7 +90,7 @@ async function login(req, res) {
 
 export async function getMe(req, res) {
     try {
-        const user = await prisma.user.findUnique({ where: { id: req.userId } });
+        const user = await User.findById(req.userId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
