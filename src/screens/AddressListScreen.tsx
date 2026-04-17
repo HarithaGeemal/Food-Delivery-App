@@ -60,7 +60,7 @@ const AddressListScreen = () => {
 
     if (mode === 'add') {
       createMutation.mutate({
-        type: editingAddress.type || 'Home',
+        type: editingAddress.type || 'Home' || 'Work' || 'Other',
         name: editingAddress.name,
         mobile: editingAddress.mobile,
         address: editingAddress.address,
@@ -98,6 +98,7 @@ const AddressListScreen = () => {
             <View className="bg-gray-100 rounded-xl px-3 py-2 mb-4">
               <TextInput value={editingAddress.name || ''} onChangeText={(t) => setEditingAddress(p => ({ ...p, name: t }))} placeholder="Your Name" className="text-[14px] text-gray-800 p-0 h-10" />
             </View>
+            
 
             <Text className="text-[13px] text-gray-500 mb-2">Mobile Number</Text>
             <View className="bg-gray-100 rounded-xl px-3 py-2 mb-4">

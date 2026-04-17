@@ -25,7 +25,7 @@ async function signUp(req, res) {
             password: hashedPassword
         });
 
-        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         const mailOptions = {
             from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_USER}>`,
@@ -79,7 +79,7 @@ async function login(req, res) {
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({ user, accessToken });
     } catch (error) {
         logger.error('Error logging in:', error);
@@ -97,6 +97,37 @@ export async function getMe(req, res) {
         res.json({ user });
     } catch (error) {
         logger.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+export async function getUsers(req, res) {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (error) {
+        logger.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+export async function updateUser(req, res) {
+    try {
+        const { id } = req.params;
+        const { role, isActive } = req.body;
+        
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (role !== undefined) user.role = role;
+        if (isActive !== undefined) user.isActive = isActive;
+
+        await user.save();
+        res.json(user);
+    } catch (error) {
+        logger.error('Error updating user:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }

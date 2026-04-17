@@ -11,7 +11,7 @@ async function getCategories(req, res) {
             .sort({ createdAt: -1 })
             .skip(parseInt(skip))
             .limit(parseInt(limit));
-            
+
         // Emulate Prisma's `include: { products: true }`
         const categoriesWithProducts = await Promise.all(
             categories.map(async (cat) => {

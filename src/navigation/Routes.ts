@@ -21,7 +21,8 @@ export enum MainRoutes {
     Profile = 'Profile',
     Category = 'Category',
     Cart = 'Cart',
-    AddressListScreen = 'AddressListScreen'
+    AddressListScreen = 'AddressListScreen',
+    MyOrders = 'MyOrders'
 }
 
 export type RootStackParamList = {
@@ -48,5 +49,6 @@ export type MainStackParamList = {
     [MainRoutes.Profile]: undefined;
     [MainRoutes.Category]: { categoryName?: string };
     [MainRoutes.AddressListScreen]: undefined;
+    [MainRoutes.MyOrders]: undefined;
 }
 

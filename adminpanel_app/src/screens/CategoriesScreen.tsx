@@ -18,12 +18,12 @@ type NavigationPropType = NavigationProp<any>;
 
 const getAvatarColor = (name: string) => {
     const colors = [
-        { bg: 'bg-blue-100', text: 'text-blue-600' },
-        { bg: 'bg-green-100', text: 'text-green-600' },
-        { bg: 'bg-purple-100', text: 'text-purple-600' },
-        { bg: 'bg-orange-100', text: 'text-orange-600' },
-        { bg: 'bg-rose-100', text: 'text-rose-600' },
-        { bg: 'bg-teal-100', text: 'text-teal-600' },
+        { bg: '#dbeafe', text: '#2563eb' },
+        { bg: '#dcfce7', text: '#16a34a' },
+        { bg: '#f3e8ff', text: '#9333ea' },
+        { bg: '#ffedd5', text: '#ea580c' },
+        { bg: '#ffe4e6', text: '#e11d48' },
+        { bg: '#ccfbf1', text: '#0d9488' },
     ];
     let hash = 0;
     if (name) {
@@ -77,7 +77,8 @@ const CategoryItem = ({ item }: { item: any }) => {
 
     return (
         <TouchableOpacity 
-            className="bg-white p-4 rounded-xl mb-4 flex-row items-center justify-between shadow-sm border border-gray-100"
+            className="bg-white p-4 rounded-xl mb-4 flex-row items-center justify-between border border-gray-100"
+            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('Product', { categoryId: item.id, categoryName: item.name })}
         >
@@ -91,10 +92,13 @@ const CategoryItem = ({ item }: { item: any }) => {
                     />
                 ) : (
                     <View
-                        className={`w-12 h-12 rounded-lg items-center justify-center shrink-0 ${getAvatarColor(item.name).bg}`}
-                        style={{ width: 48, height: 48 }}
+                        className="w-12 h-12 rounded-lg items-center justify-center shrink-0"
+                        style={{ width: 48, height: 48, backgroundColor: getAvatarColor(item.name).bg }}
                     >
-                        <Text className={`text-xl font-bold tracking-widest ${getAvatarColor(item.name).text}`}>
+                        <Text 
+                            className="text-xl font-bold tracking-widest"
+                            style={{ color: getAvatarColor(item.name).text }}
+                        >
                             {item.name ? item.name.substring(0, 2).toUpperCase() : ''}
                         </Text>
                     </View>
@@ -145,7 +149,10 @@ const CategoriesScreen = () => {
 
     return (
         <View className="flex-1 bg-gray-50">
-            <View className="flex-row items-center justify-between px-4 py-4 bg-white shadow-sm border-b border-gray-100 pb-4">
+            <View 
+                className="flex-row items-center justify-between px-4 py-4 bg-white border-b border-gray-100 pb-4"
+                style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}
+            >
                 <Text className="text-2xl font-bold pl-2 mt-4 text-gray-800">
                     Categories
                 </Text>
@@ -162,7 +169,11 @@ const CategoriesScreen = () => {
                 <View className="flex-1 justify-center items-center">
                     <ActivityIndicator size="large" color="#2563eb" />
                 </View>
-            ) : categories.length === 0 ? (
+            ) : isError ? (
+                <View className="flex-1 justify-center items-center">
+                    <Text className="text-red-500">Error loading categories</Text>
+                </View>
+            ) : !categories || categories.length === 0 ? (
                 <View className="flex-1 justify-center items-center pt-24 pb-10 px-4">
                     <Ionicons name="layers" size={60} color="#9ca3af" />
                     <Text className="text-gray-800 mt-4 font-bold text-lg">
@@ -179,10 +190,6 @@ const CategoriesScreen = () => {
                             Create category
                         </Text>
                     </TouchableOpacity>
-                </View>
-            ) : isError ? (
-                <View className="flex-1 justify-center items-center">
-                    <Text className="text-red-500">Error loading categories</Text>
                 </View>
             ) : (
                 <FlatList

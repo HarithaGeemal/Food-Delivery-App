@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CategoriesStack from './CategoriesStack';
-import UserScreen from '../screens/UserScreen';
+import UsersStack from './UsersStack';
 import OrdersStack from './OrdersStack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -35,7 +35,7 @@ const RootNavigator = () => {
       />
       <Tab.Screen
         name="Users"
-        component={UserScreen}
+        component={UsersStack}
         options={{ title: 'Users' }}
       />
       <Tab.Screen

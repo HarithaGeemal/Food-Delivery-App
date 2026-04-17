@@ -96,3 +96,10 @@ export const fetchAddresses = async () => (await api.get('/addresses')).data as 
 export const createAddress = async (data: Omit<Address, 'id' | 'userId'>) => (await api.post('/addresses', data)).data as Address;
 export const updateAddress = async (params: { id: string, data: Partial<Address> }) => (await api.put(`/addresses/${params.id}`, params.data)).data as Address;
 export const deleteAddress = async (id: string) => (await api.delete(`/addresses/${id}`)).data;
+
+// orders
+export const fetchStripeConfig = async () => (await api.get('/orders/stripe-config')).data;
+export const createStripePaymentIntent = async (data: { amount: number, currency?: string }) => (await api.post('/orders/stripe-intent', data)).data;
+export const createOrder = async (data: any) => (await api.post('/orders', data)).data;
+export const fetchMyOrders = async () => (await api.get('/orders')).data;
+

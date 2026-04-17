@@ -15,12 +15,12 @@ type Product = {
 
 const getAvatarColor = (name: string) => {
     const colors = [
-        { bg: 'bg-blue-100', text: 'text-blue-600' },
-        { bg: 'bg-green-100', text: 'text-green-600' },
-        { bg: 'bg-purple-100', text: 'text-purple-600' },
-        { bg: 'bg-orange-100', text: 'text-orange-600' },
-        { bg: 'bg-rose-100', text: 'text-rose-600' },
-        { bg: 'bg-teal-100', text: 'text-teal-600' },
+        { bg: '#dbeafe', text: '#2563eb' },
+        { bg: '#dcfce7', text: '#16a34a' },
+        { bg: '#f3e8ff', text: '#9333ea' },
+        { bg: '#ffedd5', text: '#ea580c' },
+        { bg: '#ffe4e6', text: '#e11d48' },
+        { bg: '#ccfbf1', text: '#0d9488' },
     ];
     let hash = 0;
     if (name) {
@@ -69,7 +69,10 @@ const ProductItem = ({ item, categoryId }: { item: Product; categoryId: string }
     };
 
     return (
-        <View className="bg-white p-3 rounded-2xl mb-3 flex-row items-center justify-between shadow-sm border border-gray-100">
+        <View 
+            className="bg-white p-3 rounded-2xl mb-3 flex-row items-center justify-between border border-gray-100"
+            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}
+        >
             <View className="flex-row items-center flex-1">
                 {item.imageUrl && !imageError ? (
                     <Image
@@ -80,10 +83,13 @@ const ProductItem = ({ item, categoryId }: { item: Product; categoryId: string }
                     />
                 ) : (
                     <View
-                        className={`w-14 h-14 rounded-xl items-center justify-center shrink-0 ${getAvatarColor(item.name).bg}`}
-                        style={{ width: 56, height: 56 }}
+                        className="w-14 h-14 rounded-xl items-center justify-center shrink-0"
+                        style={{ width: 56, height: 56, backgroundColor: getAvatarColor(item.name).bg }}
                     >
-                        <Text className={`text-2xl font-bold tracking-widest ${getAvatarColor(item.name).text}`}>
+                        <Text 
+                            className="text-2xl font-bold tracking-widest"
+                            style={{ color: getAvatarColor(item.name).text }}
+                        >
                             {item.name ? item.name.substring(0, 2).toUpperCase() : ''}
                         </Text>
                     </View>
@@ -141,7 +147,10 @@ const ProductScreen = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className='flex-row items-center justify-between px-4 py-4'>
+      <View 
+        className='flex-row items-center justify-between px-4 py-4 bg-white border-b border-gray-100 pb-4'
+        style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}
+      >
         <Text className='text-xl font-bold text-gray-900 mt-1'>{categoryName ? `${categoryName} products` : 'Products'}</Text>
         <TouchableOpacity
           className="flex-row items-center bg-blue-600 px-3 py-2 rounded-lg mt-1"

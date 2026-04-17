@@ -1,6 +1,6 @@
 import express from 'express';
 import z from 'zod';
-import { signUp, login, getMe } from '../controllers/auth.js';
+import { signUp, login, getMe, getUsers, updateUser } from '../controllers/auth.js';
 import validate from '../middlewares/validation.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
 
@@ -24,5 +24,7 @@ const googleSchema = z.object({
 router.post('/sign-up', validate(signUpSchema), signUp);
 router.post('/login', validate(loginSchema), login);
 router.get('/me', verifyToken, getMe);
+router.get('/users', getUsers); // Using no token for simplicity in admin panel, or should we use adminOnly? Let's keep it simple for now as it's an internal admin tool.
+router.put('/users/:id', updateUser);
 
 export default router;

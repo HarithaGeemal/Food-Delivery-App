@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import categoriesRoutes from './routes/categoriesRoutes.js';
 import productsRoutes from './routes/productRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 import { connectDB } from './config/db.js';
 
 // Guard: catch missing critical env vars at startup
@@ -46,6 +47,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoriesRoutes);
 app.use('/api/v1/products', productsRoutes);
 app.use('/api/v1/addresses', addressRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 
 

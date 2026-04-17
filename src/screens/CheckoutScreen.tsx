@@ -12,16 +12,20 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { fetchAddresses } from '../api/apiClient';
+import { fetchAddresses, createOrder, createStripePaymentIntent, fetchStripeConfig } from '../api/apiClient';
 import { useCartStore } from '../store/useCartStore';
+import { useStripe, StripeProvider } from '@stripe/stripe-react-native';
+import { Alert } from 'react-native';
 
-const CheckoutScreen = () => {
+const CheckoutContent = () => {
   const navigation = useNavigation();
   const items = useCartStore((s) => s.items);
   const totalItems = useCartStore((s) => s.getTotalItems());
   const totalPrice = useCartStore((s) => s.getTotalPrice());
   const selectedAddressId = useCartStore((s) => s.selectedAddressId);
   const setSelectedAddressId = useCartStore((s) => s.setSelectedAddressId);
+  
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: fetchAddresses });
 
@@ -41,6 +45,91 @@ const CheckoutScreen = () => {
 
   const [deliverySlot, setDeliverySlot] = useState('ASAP');
   const [paymentMethod, setPaymentMethod] = useState('Pay Online');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!displayAddress) {
+      Alert.alert('Error', 'Please select a delivery address');
+      return;
+    }
+    
+    if (items.length === 0) {
+      Alert.alert('Error', 'Your cart is empty');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const formattedItems = items.map(i => ({ 
+        productId: i.id, 
+        name: i.name, 
+        price: i.price, 
+        quantity: i.qty 
+      }));
+
+      if (paymentMethod === 'Pay Online') {
+        const { clientSecret } = await createStripePaymentIntent({ amount: grandTotal, currency: 'usd' });
+        
+        const { error: initError } = await initPaymentSheet({
+          merchantDisplayName: 'Food Delivery App',
+          paymentIntentClientSecret: clientSecret,
+          defaultBillingDetails: {
+            name: displayAddress.name,
+            phone: displayAddress.mobile,
+            address: {
+              line1: displayAddress.address,
+              city: displayAddress.city,
+              postalCode: displayAddress.zipCode,
+              country: 'US', // Default country for formatting
+            }
+          }
+        });
+
+        if (initError) {
+          setIsProcessing(false);
+          Alert.alert('Payment Initialisation Failed', initError.message);
+          return;
+        }
+
+        const { error: paymentError } = await presentPaymentSheet();
+
+        if (paymentError) {
+          setIsProcessing(false);
+          Alert.alert('Payment Failed', paymentError.message);
+          return;
+        }
+
+        // Success callback
+        await createOrder({
+          items: formattedItems,
+          totalAmount: grandTotal,
+          addressId: displayAddress.id,
+          paymentMethod: 'card',
+          paymentId: clientSecret.split('_secret')[0], // Extract paymentIntentId
+        });
+        
+        useCartStore.getState().clearCart();
+        Alert.alert('Success', 'Order Placed Successfully!');
+        navigation.navigate('MainTabs' as never);
+
+      } else {
+        // Cash on Delivery
+        await createOrder({
+          items: formattedItems,
+          totalAmount: grandTotal,
+          addressId: displayAddress.id,
+          paymentMethod: 'cash',
+        });
+        useCartStore.getState().clearCart();
+        Alert.alert('Success', 'Order Placed Successfully!');
+        navigation.navigate('MainTabs' as never);
+      }
+    } catch (error) {
+      setIsProcessing(false);
+      Alert.alert('Error', 'Something went wrong while placing your order.');
+      console.log('Checkout error:', error);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -139,7 +228,7 @@ const CheckoutScreen = () => {
         <Text className="text-[15px] font-bold text-gray-800 mb-2">Payment Method</Text>
         <View className="bg-white rounded-2xl p-4 shadow-sm mb-4 border border-gray-100">
           {[
-            { id: 'Pay Online', label: 'Pay Online (Razorpay)' },
+            { id: 'Pay Online', label: 'Pay Online (Stripe)' },
             { id: 'COD', label: 'Cash on Delivery' },
           ].map((method) => (
             <Pressable
@@ -222,18 +311,41 @@ const CheckoutScreen = () => {
           </View>
 
           <Pressable
-            className="bg-white rounded-xl px-5 py-2.5"
-            onPress={() => {
-              /* Proceed logic */
-            }}
+            className={`bg-white rounded-xl px-5 py-2.5 ${isProcessing ? 'opacity-70' : ''}`}
+            disabled={isProcessing}
+            onPress={handleCheckout}
           >
             <Text className="text-green-700 font-extrabold text-[13px] tracking-wider text-center">
-              CONTINUE
+              {isProcessing ? 'PROCESSING' : 'CONTINUE'}
             </Text>
           </Pressable>
         </View>
       </View>
     </SafeAreaView>
+  );
+};
+
+const CheckoutScreen = () => {
+  const [publishableKey, setPublishableKey] = useState('');
+
+  React.useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const config = await fetchStripeConfig();
+        if (config?.publishableKey) {
+          setPublishableKey(config.publishableKey);
+        }
+      } catch (err) {
+        console.log('Failed to fetch stripe config', err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  return (
+    <StripeProvider publishableKey={publishableKey || 'pk_test_dummy'}>
+      <CheckoutContent />
+    </StripeProvider>
   );
 };
 
