@@ -132,3 +132,6 @@ export const updateOrderStatus = async (id: string, status: string) => (await ap
 // user APIs
 export const fetchUsers = async () => (await api.get('/auth/users')).data;
 export const updateUser = async (id: string, data: { role?: string, isActive?: boolean }) => (await api.put(`/auth/users/${id}`, data)).data;
+
+// feedback APIs
+export const fetchAllFeedback = async () => (await api.get('/feedbacks/all')).data;

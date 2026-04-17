@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CategoriesStack from './CategoriesStack';
 import UsersStack from './UsersStack';
 import OrdersStack from './OrdersStack';
+import FeedbackScreen from '../screens/FeedbackScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
@@ -21,6 +22,8 @@ const RootNavigator = () => {
                 iconName = focused ? 'people' : 'people-outline';
             } else if(route.name === 'Orders') {
                 iconName = focused ? 'cart' : 'cart-outline';
+            } else if(route.name === 'FeedbackTab') {
+                iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
             }
             return <Ionicons name={iconName} size={size} color={color} />
         },
@@ -42,6 +45,11 @@ const RootNavigator = () => {
         name="Orders"
         component={OrdersStack}
         options={{ title: 'Orders' }}
+      />
+      <Tab.Screen
+        name="FeedbackTab"
+        component={FeedbackScreen}
+        options={{ title: 'Feedback' }}
       />
     </Tab.Navigator>
   );

@@ -7,8 +7,10 @@ import {
 } from 'react-native';
 import React, { memo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useCartStore } from '../store/useCartStore';
+import { MainRoutes, MainStackParamList } from 'navigation/Routes';
 
 const screen = Dimensions.get('window').width;
 const gap = 18;
@@ -27,7 +29,7 @@ type Props = {
 };
 
 function ProductsCard({ item }: Props) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [liked, setLiked] = useState(false);
 
   const addItem = useCartStore((s) => s.addItem);
@@ -54,7 +56,7 @@ function ProductsCard({ item }: Props) {
       style={{ width: cardWidth }}
       className="bg-white rounded-2xl overflow-hidden shadow-sm mb-1"
     >
-      <Pressable onPress={() => {}}>
+      <Pressable onPress={() => navigation.navigate(MainRoutes.ProductDetails, { productId: item.id })}>
         {/* Image Section */}
         <View className="h-[150px] bg-gray-100 relative">
           {item?.imageUrl ? (

@@ -103,3 +103,19 @@ export const createStripePaymentIntent = async (data: { amount: number, currency
 export const createOrder = async (data: any) => (await api.post('/orders', data)).data;
 export const fetchMyOrders = async () => (await api.get('/orders')).data;
 
+// feedbacks
+export interface Feedback {
+    id: string;
+    userId: { id: string; name?: string; email?: string } | string;
+    productId: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export const fetchProductFeedback = async (productId: string) => (await api.get(`/feedbacks/product/${productId}`)).data as Feedback[];
+export const createFeedback = async (data: { productId: string; rating: number; comment?: string }) => (await api.post('/feedbacks', data)).data as Feedback;
+export const updateFeedback = async (id: string, data: { rating?: number; comment?: string }) => (await api.put(`/feedbacks/${id}`, data)).data as Feedback;
+export const deleteFeedback = async (id: string) => (await api.delete(`/feedbacks/${id}`)).data;
+
