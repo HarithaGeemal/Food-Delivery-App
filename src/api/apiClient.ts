@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://10.0.2.2:5000/api/v1';
+const API_BASE_URL = 'http://admin-backend-env.eba-cdsq37zf.ap-south-1.elasticbeanstalk.com/api/v1';
 
 export interface Category {
     id: string;

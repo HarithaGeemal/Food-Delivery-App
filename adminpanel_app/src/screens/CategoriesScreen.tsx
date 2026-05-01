@@ -13,6 +13,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchCategories, deleteCategory } from '../api/apiClient';
+import { useAuthStore } from '../store/useAuthStore';
 
 type NavigationPropType = NavigationProp<any>;
 
@@ -137,6 +138,7 @@ const CategoryItem = ({ item }: { item: any }) => {
 
 const CategoriesScreen = () => {
     const navigation = useNavigation<NavigationPropType>();
+    const { logout } = useAuthStore();
 
     const {
         data: categories,
@@ -156,13 +158,21 @@ const CategoriesScreen = () => {
                 <Text className="text-2xl font-bold pl-2 mt-4 text-gray-800">
                     Categories
                 </Text>
-                <TouchableOpacity
-                    className="flex-row items-center bg-blue-600 px-3 py-2 rounded-lg mt-5"
-                    onPress={() => navigation.navigate('AddCategory')}
-                >
-                    <Ionicons name="add-circle" size={18} color="#fff" />
-                    <Text className="text-white font-semibold ml-2">Add</Text>
-                </TouchableOpacity>
+                <View className="flex-row mt-5">
+                    <TouchableOpacity
+                        className="flex-row items-center bg-blue-600 px-3 py-2 rounded-lg"
+                        onPress={() => navigation.navigate('AddCategory')}
+                    >
+                        <Ionicons name="add-circle" size={18} color="#fff" />
+                        <Text className="text-white font-semibold ml-2">Add</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        className="flex-row items-center bg-red-100 px-3 py-2 rounded-lg ml-2"
+                        onPress={logout}
+                    >
+                        <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {isLoading ? (

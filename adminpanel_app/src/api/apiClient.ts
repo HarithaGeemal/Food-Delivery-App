@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// ⚠️ For Android Emulators, use '10.0.2.2' which automatically points to your PC's localhost.
-// If testing on a physical device, you will need to use your PC's local network IP (e.g., 192.168.1.7).
-const API_BASE_URL = 'http://10.0.2.2:5000/api/v1';
+// Production backend URL (AWS Elastic Beanstalk).
+// For local emulator testing, set EXPO_PUBLIC_API_URL=http://10.0.2.2:5000/api/v1 in .env
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://admin-backend-env.eba-cdsq37zf.ap-south-1.elasticbeanstalk.com/api/v1';
+
+console.log('[apiClient] Using API_BASE_URL:', API_BASE_URL);
 
 export const api = axios.create({
     baseURL: API_BASE_URL,
@@ -10,6 +12,44 @@ export const api = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+api.interceptors.request.use(
+    (config) => {
+        return config;
+    },
+    (error: any) => {
+        console.error('API Request Error:', error);
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error: any) => {
+        if (error.response && [401, 404].includes(error.response.status)) {
+            console.warn(`API auth check failed: ${error.response.status}`);
+        } else {
+            console.error('API Response Error:', error.message);
+        }
+        return Promise.reject(error);
+    }
+);
+
+let authInterceptorId: number | null = null;
+
+export const setAuthToken = (token: string | null) => {
+    if (authInterceptorId !== null) {
+        api.interceptors.request.eject(authInterceptorId);
+    }
+    if (token) {
+        authInterceptorId = api.interceptors.request.use((config) => {
+            config.headers.Authorization = `Bearer ${token}`;
+            return config;
+        });
+    } else {
+        authInterceptorId = null;
+    }
+}
 
 // category APIs
 
@@ -128,6 +168,14 @@ export const deleteProduct = async (id: string) => (await api.delete(`/products/
 export const fetchAllOrders = async () => (await api.get('/orders/all')).data;
 export const fetchUserOrders = async (userId: string) => (await api.get(`/orders/all?userId=${userId}`)).data;
 export const updateOrderStatus = async (id: string, status: string) => (await api.put(`/orders/${id}/status`, { status })).data;
+
+// auth APIs
+export const signUp = async (data: { email: string, password: string, phone: string, confirmPassword: string }) => {
+    const { confirmPassword, ...rest } = data;
+    return (await api.post('/auth/sign-up', { ...rest, password_confirm: confirmPassword })).data;
+};
+export const login = async (data: { email: string, password: string }) => (await api.post('/auth/login', data)).data;
+export const fetchMe = async () => (await api.get('/auth/me')).data;
 
 // user APIs
 export const fetchUsers = async () => (await api.get('/auth/users')).data;
