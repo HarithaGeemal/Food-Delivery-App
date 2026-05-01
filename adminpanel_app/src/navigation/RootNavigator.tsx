@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CategoriesStack from './CategoriesStack';
 import UsersStack from './UsersStack';
 import OrdersStack from './OrdersStack';
-import FeedbackScreen from '../screens/FeedbackScreen';
+import FeedbackStack from './FeedbackStack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
@@ -48,7 +48,7 @@ const RootNavigator = () => {
       />
       <Tab.Screen
         name="FeedbackTab"
-        component={FeedbackScreen}
+        component={FeedbackStack}
         options={{ title: 'Feedback' }}
       />
     </Tab.Navigator>

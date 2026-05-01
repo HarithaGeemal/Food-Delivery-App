@@ -14,12 +14,24 @@ const MyOrdersScreen = () => {
     });
 
     const renderOrderItem = ({ item }: any) => {
+        const statusStyle = () => {
+            switch (item.status) {
+                case 'completed':  return { bg: 'bg-green-100',  text: 'text-green-800' };
+                case 'delivering': return { bg: 'bg-green-100',  text: 'text-green-800' };
+                case 'accepted':   return { bg: 'bg-blue-100',   text: 'text-blue-800' };
+                case 'ready':      return { bg: 'bg-purple-100', text: 'text-purple-800' };
+                case 'processing': return { bg: 'bg-blue-100',   text: 'text-blue-800' };
+                case 'cancelled':  return { bg: 'bg-red-100',    text: 'text-red-800' };
+                default:           return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+            }
+        };
+        const { bg, text } = statusStyle();
         return (
             <View className="bg-white rounded-xl p-4 shadow-sm mb-4 border border-gray-100">
                 <View className="flex-row justify-between items-center mb-2">
                     <Text className="text-[13px] font-bold text-gray-800">Order ID: {item.id || item._id}</Text>
-                    <View className={`px-2 py-1 rounded-md ${item.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                        <Text className={`text-[12px] font-bold capitalize ${item.status === 'completed' ? 'text-green-800' : 'text-yellow-800'}`}>
+                    <View className={`px-2 py-1 rounded-md ${bg}`}>
+                        <Text className={`text-[12px] font-bold capitalize ${text}`}>
                             {item.status}
                         </Text>
                     </View>

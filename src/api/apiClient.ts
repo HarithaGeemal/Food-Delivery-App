@@ -119,3 +119,10 @@ export const createFeedback = async (data: { productId: string; rating: number; 
 export const updateFeedback = async (id: string, data: { rating?: number; comment?: string }) => (await api.put(`/feedbacks/${id}`, data)).data as Feedback;
 export const deleteFeedback = async (id: string) => (await api.delete(`/feedbacks/${id}`)).data;
 
+// driver delivery APIs
+export const fetchAvailableOrders = async () => (await api.get('/driver/available')).data;
+export const acceptDeliveryOrder = async (orderId: string) => (await api.put(`/driver/accept/${orderId}`)).data;
+export const startDeliveryOrder = async (orderId: string) => (await api.put(`/driver/start/${orderId}`)).data;
+export const fetchMyDeliveries = async () => (await api.get('/driver/my-deliveries')).data;
+export const markOrderDelivered = async (orderId: string) => (await api.put(`/driver/complete/${orderId}`)).data;
+

@@ -118,7 +118,7 @@ export const createOrder = async (req, res) => {
             addressId,
             paymentMethod,
             paymentId,
-            status: paymentMethod === 'card' ? 'completed' : 'pending'
+            status: 'pending'   // always starts pending so a driver can accept it
         });
 
         await newOrder.save();

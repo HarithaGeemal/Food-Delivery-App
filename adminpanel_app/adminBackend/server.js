@@ -16,6 +16,7 @@ import productsRoutes from './routes/productRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
+import driverRoutes from './routes/driverRoutes.js';
 import { connectDB } from './config/db.js';
 
 // Guard: catch missing critical env vars at startup
@@ -43,6 +44,10 @@ app.use(rateLimit({
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get('/', (req, res) => {
+    res.send('Backend is running 🚀');
+});
+
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoriesRoutes);
@@ -50,6 +55,7 @@ app.use('/api/v1/products', productsRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/feedbacks', feedbackRoutes);
+app.use('/api/v1/driver', driverRoutes);
 
 
 

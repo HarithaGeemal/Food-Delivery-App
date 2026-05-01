@@ -9,6 +9,8 @@ import AddressListScreen from 'screens/AddressListScreen';
 import ProfileScreen from 'screens/ProfileScreen';
 import MyOrdersScreen from 'screens/MyOrdersScreen';
 import ProductDetailScreen from 'screens/ProductDetailScreen';
+import DeliveryDetailScreen from 'screens/DeliveryDetailScreen';
+import MyDeliveriesScreen from 'screens/MyDeliveriesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +25,8 @@ const MainNavigator = () => {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
       <Stack.Screen name="ProductDetails" component={ProductDetailScreen} />
+      <Stack.Screen name="DeliveryDetail" component={DeliveryDetailScreen} />
+      <Stack.Screen name="MyDeliveries" component={MyDeliveriesScreen} />
     </Stack.Navigator>
   );
 };

@@ -11,6 +11,7 @@ export interface User {
     email: string;
     phone?: string;
     name?: string;
+    role?: string;
 }
 
 type AuthState = {

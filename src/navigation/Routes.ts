@@ -22,7 +22,10 @@ export enum MainRoutes {
     Category = 'Category',
     Cart = 'Cart',
     AddressListScreen = 'AddressListScreen',
-    MyOrders = 'MyOrders'
+    MyOrders = 'MyOrders',
+    Deliveries = 'Deliveries',
+    DeliveryDetail = 'DeliveryDetail',
+    MyDeliveries = 'MyDeliveries',
 }
 
 export type RootStackParamList = {
@@ -50,5 +53,7 @@ export type MainStackParamList = {
     [MainRoutes.Category]: { categoryName?: string };
     [MainRoutes.AddressListScreen]: undefined;
     [MainRoutes.MyOrders]: undefined;
+    [MainRoutes.DeliveryDetail]: { orderId: string };
+    [MainRoutes.MyDeliveries]: undefined;
 }
 

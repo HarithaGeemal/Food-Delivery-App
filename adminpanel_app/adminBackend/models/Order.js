@@ -15,12 +15,14 @@ const orderSchema = new mongoose.Schema(
     addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'delivering', 'completed', 'cancelled'],
+      enum: ['pending', 'processing', 'ready', 'accepted', 'delivering', 'completed', 'cancelled'],
       default: 'pending'
     },
     paymentMethod: { type: String, enum: ['card', 'cash'], required: true, default: 'card' },
     paymentId: { type: String },
     razorPayOrderId: { type: String },
+    driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    shopName: { type: String, default: '' },
   },
   { timestamps: true }
 );
